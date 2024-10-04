@@ -54,43 +54,43 @@ Use gdisk to create the partitions:
 ```
 gdisk /dev/nvme0n1
 ```
-Partition 1: EFI (300MB, type EF00)<br>
-Partition 2: Root / (500GB, type 8300)<br>
-Partition 3: Home /home (475GB, type 8300)<br>
-Partition 4: Swap (16GB, type 8200)<br><br>
+Partition 1: EFI (500MB, type EF00)<br>
+Partition 2: Root / (100GB, type 8300)<br>
+Partition 3: Home /home (891GB, type 8300)<br>
+Partition 4: Swap (32GB, type 8200)<br><br>
 Start gdisk to partition the NVMe disk:<br>
 
 ```
 fdisk /dev/nvme0n1
 ```
 <br>
-Create the EFI Partition (300MB, Type EF00)
-1. Type n to create a new partition.
-2. For Partition Number, press Enter to use the default (1).
-3. For First sector, press Enter to accept the default (it will usually start from 2048).
-4. For Last sector, type +300M to allocate 300MB for the EFI partition and press Enter.
-5. For Hex code or GUID, type EF00 and press Enter (this is the EFI System Partition type).<br>
+Create the EFI Partition (300MB, Type EF00)<br>
+1. Type n to create a new partition.<br>
+2. For Partition Number, press Enter to use the default (1).<br>
+3. For First sector, press Enter to accept the default (it will usually start from 2048).<br>
+4. For Last sector, type +300M to allocate 300MB for the EFI partition and press Enter.<br>
+5. For Hex code or GUID, type EF00 and press Enter (this is the EFI System Partition type).<br><br>
 
-Create the Root Partition (500GB, Type 8300)
-1. Type n to create another partition.
-2. For Partition Number, press Enter to use the default (2).
-3. For First sector, press Enter to accept the default (it will start right after the EFI partition).
-4. For Last sector, type +500G and press Enter.
-5. For Hex code or GUID, press Enter to accept the default (8300 for Linux filesystem).<br>
+Create the Root Partition (500GB, Type 8300)<br>
+1. Type n to create another partition.<br>
+2. For Partition Number, press Enter to use the default (2).<br>
+3. For First sector, press Enter to accept the default (it will start right after the EFI partition).<br>
+4. For Last sector, type +500G and press Enter.<br>
+5. For Hex code or GUID, press Enter to accept the default (8300 for Linux filesystem).<br><br>
 
-Create the Home Partition (475GB, Type 8300)
-1. Type n to create another partition.
-2. For Partition Number, press Enter to use the default (3).
-3. For First sector, press Enter to accept the default.
-4. For Last sector, type +475G and press Enter.
-5. For Hex code or GUID, press Enter to accept the default (8300 for Linux filesystem).<br>
+Create the Home Partition (475GB, Type 8300)<br>
+1. Type n to create another partition.<br>
+2. For Partition Number, press Enter to use the default (3).<br>
+3. For First sector, press Enter to accept the default.<br>
+4. For Last sector, type +475G and press Enter.<br>
+5. For Hex code or GUID, press Enter to accept the default (8300 for Linux filesystem).<br><br>
 
-Create the Swap Partition (16GB, Type 8200)
-1. Type n to create the final partition.
-2. For Partition Number, press Enter to use the default (4).
-3. For First sector, press Enter to accept the default.
-4. For Last sector, type +16G and press Enter.
-5. For Hex code or GUID, type 8200 and press Enter (this is the Linux swap partition type).<br>
+Create the Swap Partition (16GB, Type 8200)<br>
+1. Type n to create the final partition.<br>
+2. For Partition Number, press Enter to use the default (4).<br>
+3. For First sector, press Enter to accept the default.<br>
+4. For Last sector, type +16G and press Enter.<br>
+5. For Hex code or GUID, type 8200 and press Enter (this is the Linux swap partition type).<br><br>
 
 Write the Partition Table <br>
 Type p to print the partition table and verify it looks correct.<br>
@@ -171,7 +171,7 @@ mount /dev/sda1 /mnt/gentoo/home/zohak/steam
 mount /dev/sdc1 /mnt/gentoo/home/zohak/data
 ```
 <br>
-8. Install the Stage 3 Tarball
+8. Install the Stage 3 Tarball<br>
 Download the systemd stage 3 tarball:
 
 ```
