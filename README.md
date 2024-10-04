@@ -585,7 +585,7 @@ The output of the scrub process is logged to /var/log/btrfs-scrub.log. You can r
 cat /var/log/btrfs-scrub.log
 ```
 
-This setup will ensure that your Btrfs partitions are automatically scrubbed monthly to detect and fix potential file system issues.
+This setup will ensure that the Btrfs partitions are automatically scrubbed monthly to detect and fix potential file system issues.
 
 
 
