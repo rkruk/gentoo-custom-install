@@ -98,11 +98,18 @@ Mount Partitions<br>
 
 ```bash
 mount /dev/nvme0n1p2 /mnt/gentoo
+mkdir /mnt/gentoo/boot /mnt/gentoo/home /mnt/gentoo/efi
+```
+
+```bash
+mount /dev/nvme0n1p2 /mnt/gentoo
 mkdir -p /mnt/gentoo/{boot,home,efi}
+# It is the same as the: mkdir /mnt/gentoo/boot /mnt/gentoo/home /mnt/gentoo/efi
 mount /dev/nvme0n1p1 /mnt/gentoo/efi
 mount /dev/nvme0n1p3 /mnt/gentoo/home
-mount /dev/sda1 /mnt/gentoo/home/zohak/steam
-mount /dev/sdc1 /mnt/gentoo/home/zohak/data
+mkdir /mnt/gentoo/home/gentoouser
+mount /dev/sda1 /mnt/gentoo/home/gentoouser/steam
+mount /dev/sdc1 /mnt/gentoo/home/gentoouser/data
 ```
 
 11. Stage 3 Installation<br><br>
@@ -124,37 +131,67 @@ CXXFLAGS="${CFLAGS}"
 MAKEOPTS="-j24"
 USE="nvidia alsa pulseaudio btrfs systemd kde"
 VIDEO_CARDS="nvidia"
+GRUB_PLATFORMS="efi-64"
+ACCEPT_LICENSE="*"
 ```
 
 13. Prepare Chroot Environment<br>
+<br>
+Copy DNS information to the chroot environment:
 
 ```bash
 cp -L /etc/resolv.conf /mnt/gentoo/etc/
+```
+<br>
+Mount necessary filesystems:
+
+```bash
 mount --types proc /proc /mnt/gentoo/proc
 mount --rbind /sys /mnt/gentoo/sys && mount --make-rslave /mnt/gentoo/sys
 mount --rbind /dev /mnt/gentoo/dev && mount --make-rslave /mnt/gentoo/dev
+mount --rbind /run /mnt/gentoo/run && mount --make-rslave /mnt/gentoo/run
+```
+<br>
+Chroot into the Gentoo environment:<br>
+
+```bash
 chroot /mnt/gentoo /bin/bash
 source /etc/profile
+export PS1="(chroot) $PS1"
 ```
 
 14. Kernel and Bootloader<br><br>
 Install Binary Kernel
 
 ```bash
-emerge --sync
+emerge --sync && emerge -uDU world
 emerge -av sys-kernel/gentoo-kernel-bin
 ```
+<br>
+Verify the kernel version:
+
+```bash
+eselect kernel list
+```
+<br>
 
 15. Configure Fstab Edit `/etc/fstab`:
 
 ```bash
 /dev/nvme0n1p1  /efi        vfat    defaults,noatime  0 2
-/dev/nvme0n1p2  /           btrfs   noatime,compress=zstd  0 1
-/dev/nvme0n1p3  /home       btrfs   noatime,compress=zstd  0 2
-/dev/sda1       /home/zohak/steam btrfs noatime,compress=zstd 0 2
-/dev/sdc1       /home/zohak/data  ext4 defaults,noatime 0 2
+/dev/nvme0n1p2  /           btrfs   noatime,compress=zstd,space_cache=v2,discard=async  0 1
+/dev/nvme0n1p3  /home       btrfs   noatime,compress=zstd,space_cache=v2,discard=async  0 2
+/dev/sda1       /home/gentoouser/steam btrfs noatime,compress=zstd,space_cache=v2,discard=async 0 2
+/dev/sdc1       /home/gentoouser/data  ext4   defaults,noatime  0 2
 /dev/nvme0n1p4  none        swap    sw                   0 0
 ```
+<br>
+Install EFI boot manager:
+
+```bash
+emerge -av sys-boot/efibootmgr
+```
+<br>
 
 16. Install GRUB:<br><br>
 
@@ -163,17 +200,139 @@ emerge -av sys-boot/grub
 grub-install --target=x86_64-efi --efi-directory=/efi --bootloader-id=gentoo --recheck
 grub-mkconfig -o /boot/grub/grub.cfg
 ```
+<br>
+Check EFI boot entries:
 
-17. Post-Installation:<br><br>
+```bash
+efibootmgr
+```
+<br>
 
-Install KDE Plasma
+17.System Configuration<br><br>
+
+Set the hostname:<br>
+
+```bash
+echo "hostname=lovelysystemname-gentoo" > /etc/conf.d/hostname
+```
+<br>
+Edit the locale configuration:
+
+```bash
+nano /etc/locale.gen
+```
+<br>
+Uncomment your desired locales and generate them:<br>
+
+```bash
+locale-gen
+```
+<br>
+Set the timezone:<br>
+
+```bash
+echo "Europe/Warsaw" > /etc/timezone
+emerge --config sys-libs/timezone-data
+```
+
+Set the root password:<br>
+
+```bash
+passwd
+```
+<br>
+Create a user:
+
+```bash
+useradd -m -G users,wheel,audio,video,portage -s /bin/bash gentoouser
+passwd gentoouser
+```
+<br>
+18. Finish Installation<br><br>
+Exit the chroot environment:
+
+```bash
+exit
+```
+<br>
+Unmount all partitions:<br>
+
+```bash
+umount -l /mnt/gentoo/dev{/shm,/pts,}
+umount -l /mnt/gentoo{/proc,/sys,}
+umount -R /mnt/gentoo
+```
+<br>
+Reboot the system:<br>
+
+```bash
+reboot
+```
+<br>
+19. Post-Reboot: Installing KDE Plasma<br><br>
+After rebooting into Gentoo, install KDE Plasma:<br>
 
 ```bash
 emerge plasma-meta kde-apps/okular kde-apps/dolphin kde-plasma/plasma-nm
-systemctl enable sddm NetworkManager
+```
+<br>
+Enable the display manager and NetworkManager:
+
+```bash
+systemctl enable sddm
+systemctl enable NetworkManager
+```
+<br>
+20. NVIDIA Driver Setup<br><br>
+Install the NVIDIA proprietary drivers:
+
+```bash
+emerge -av nvidia-drivers
+```
+<br>
+Enable the NVIDIA kernel modules:<br>
+
+```bash
+modprobe nvidia
+```
+<br>
+21. Optimization and Maintenance<br><br>
+Enable Btrfs Scrubbing<br>
+Create a script for scrubbing Btrfs partitions:<br>
+
+```bash
+sudo nano /usr/local/bin/btrfs-scrub.sh
 ```
 
-18. Set Optimizations
+Add the following:
+
+```bash
+#!/bin/bash
+btrfs scrub start -B / >> /var/log/btrfs-scrub.log 2>&1
+btrfs scrub start -B /home >> /var/log/btrfs-scrub.log 2>&1
+btrfs scrub start -B /home/gentoouser/steam >> /var/log/btrfs-scrub.log 2>&1
+```
+<br>
+Make the script executable:
+
+```bash
+sudo chmod +x /usr/local/bin/btrfs-scrub.sh
+```
+<br>
+Set up a cron job for monthly scrubbing:
+
+```bash
+sudo crontab -e
+```
+<br>
+Add:
+
+```bash
+0 22 1 * * /usr/local/bin/btrfs-scrub.sh
+```
+<br>
+
+22. Post-Installation:<br><br>
 
 ```bash
 echo "vm.swappiness=10" >> /etc/sysctl.conf
