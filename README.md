@@ -129,7 +129,7 @@ Edit `/mnt/gentoo/etc/portage/make.conf:`
 CFLAGS="-march=znver3 -O2 -pipe"
 CXXFLAGS="${CFLAGS}"
 MAKEOPTS="-j24"
-USE="nvidia alsa pulseaudio btrfs systemd kde"
+USE="nvidia alsa pulseaudio btrfs systemd kde qt6"
 VIDEO_CARDS="nvidia"
 GRUB_PLATFORMS="efi-64"
 ACCEPT_LICENSE="*"
@@ -273,7 +273,8 @@ reboot
 After rebooting into Gentoo, install KDE Plasma:<br>
 
 ```bash
-emerge plasma-meta kde-apps/okular kde-apps/dolphin kde-plasma/plasma-nm
+emerge plasma-meta kde-apps/okular kde-apps/dolphin kde-plasma/plasma-nm media-video/pipewire x11-misc/sddm
+systemctl enable --now pipewire pipewire-pulse
 ```
 <br>
 Enable the display manager and NetworkManager:
